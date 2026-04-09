@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideoChapter-Intelligence — AI Content Structuring | Dailymotion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --teal:#14b8a6;--indigo:#6366f1;--fuchsia:#d946ef;--amber:#f59e0b;--lime:#84cc16;--red:#ef4444;
+            --bg:#030b1a;--surface:#0c1a2e;--raised:#162a46;--hover:#1e3a5f;
+            --t1:#f0f4f8;--t2:#8899b0;--t3:#4a6078;
+            --ring:#1e3a5f;
+            --grad:linear-gradient(135deg,#14b8a6 0%,#6366f1 50%,#d946ef 100%);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;
+            background-image:radial-gradient(ellipse at 10% 90%,rgba(20,184,166,0.07) 0%,transparent 50%),radial-gradient(ellipse at 90% 10%,rgba(217,70,239,0.05) 0%,transparent 50%);}
+
+        .header{background:rgba(12,26,46,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--ring);padding:0.6rem 2rem;position:sticky;top:0;z-index:100;}
+        .header-inner{max-width:1800px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;}
+        .logo{display:flex;align-items:center;gap:0.65rem;}
+        .logo-mark{width:40px;height:40px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 0 18px rgba(20,184,166,0.3);}
+        .logo-title{font-size:1.35rem;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .logo-sub{font-size:0.5rem;color:var(--t3);text-transform:uppercase;letter-spacing:3px;}
+        .badges{display:flex;gap:0.3rem;}
+        .badge{background:var(--surface);border:1px solid var(--ring);padding:0.25rem 0.6rem;border-radius:5px;font-size:0.58rem;color:var(--t3);font-family:'Source Code Pro',monospace;}
+        .badge.live{background:rgba(20,184,166,0.1);border-color:var(--teal);color:var(--teal);}
+        .badge.live::before{content:'';display:inline-block;width:5px;height:5px;background:var(--teal);border-radius:50%;margin-right:4px;animation:p 1.5s infinite;}
+        @keyframes p{0%,100%{opacity:1}50%{opacity:0.3}}
+
+        .main{max-width:1800px;margin:0 auto;padding:1.2rem 2rem;}
+        .hero{text-align:center;margin-bottom:1.2rem;}
+        .hero h1{font-size:2.1rem;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+        .hero p{color:var(--t2);font-size:0.9rem;}
+
+        .workspace{display:grid;grid-template-columns:1fr 380px;gap:1rem;}
+        @media(max-width:1200px){.workspace{grid-template-columns:1fr;}}
+
+        .card{background:var(--surface);border:1px solid var(--ring);border-radius:14px;overflow:hidden;}
+        .card-h{padding:0.8rem 1.1rem;border-bottom:1px solid var(--ring);display:flex;align-items:center;justify-content:space-between;}
+        .card-h h3{font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:0.4rem;}
+        .card-b{padding:1.1rem;}
+
+        /* Transcript */
+        .transcript-area{background:var(--raised);border-radius:10px;padding:1rem;max-height:180px;overflow-y:auto;margin-bottom:1rem;font-size:0.75rem;line-height:1.7;color:var(--t2);}
+        .transcript-area .ts{color:var(--teal);font-family:'Source Code Pro',monospace;font-size:0.65rem;margin-right:0.5rem;cursor:pointer;}
+        .transcript-area .ts:hover{text-decoration:underline;}
+        .transcript-area .highlight{background:rgba(20,184,166,0.15);border-radius:3px;padding:0 3px;color:var(--t1);}
+
+        /* Chapters */
+        .chapters{display:flex;flex-direction:column;gap:0.5rem;}
+        .chapter{display:flex;gap:0.6rem;padding:0.7rem;background:var(--raised);border-radius:10px;border-left:3px solid var(--ring);transition:all 0.3s;cursor:pointer;animation:fadeIn 0.4s ease;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        .chapter:hover{border-left-color:var(--teal);background:rgba(20,184,166,0.05);}
+        .chapter.active{border-left-color:var(--teal);background:rgba(20,184,166,0.08);}
+        .ch-time{font-size:0.7rem;font-family:'Source Code Pro',monospace;color:var(--teal);min-width:48px;}
+        .ch-info{flex:1;}
+        .ch-title{font-size:0.78rem;font-weight:600;margin-bottom:0.1rem;}
+        .ch-desc{font-size:0.6rem;color:var(--t3);}
+        .ch-badge{font-size:0.55rem;padding:0.15rem 0.4rem;border-radius:3px;font-family:'Source Code Pro',monospace;font-weight:600;}
+        .ch-badge.auto{background:rgba(20,184,166,0.15);color:var(--teal);}
+
+        /* Timeline */
+        .timeline-visual{background:var(--raised);border-radius:10px;padding:1rem;margin-bottom:1rem;}
+        .timeline-bar{height:36px;background:var(--bg);border-radius:6px;position:relative;overflow:hidden;display:flex;}
+        .tl-seg{height:100%;position:relative;transition:all 0.5s;display:flex;align-items:center;justify-content:center;font-size:0.5rem;font-weight:600;color:rgba(255,255,255,0.7);cursor:pointer;border-right:1px solid rgba(0,0,0,0.3);}
+        .tl-seg:hover{filter:brightness(1.2);}
+        .tl-labels{display:flex;justify-content:space-between;margin-top:0.3rem;}
+        .tl-label{font-size:0.5rem;color:var(--t3);font-family:'Source Code Pro',monospace;}
+
+        /* Controls */
+        .ctrls{display:flex;gap:0.4rem;margin-bottom:1rem;}
+        .ctrl-btn{flex:1;padding:0.65rem;background:var(--raised);border:1px solid var(--ring);border-radius:9px;color:var(--t1);font-family:'Space Grotesk';font-size:0.75rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.4rem;}
+        .ctrl-btn:hover{border-color:var(--teal);background:rgba(20,184,166,0.08);}
+        .ctrl-btn.active{border-color:var(--teal);background:rgba(20,184,166,0.15);color:var(--teal);}
+
+        /* Metadata generation */
+        .meta-section{background:var(--raised);border-radius:10px;padding:1rem;}
+        .meta-row{margin-bottom:0.75rem;}
+        .meta-label{font-size:0.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.3rem;}
+        .meta-val{font-size:0.78rem;font-weight:500;background:var(--bg);border-radius:6px;padding:0.5rem 0.7rem;border:1px solid var(--ring);}
+        .meta-val.generated{border-color:var(--teal);animation:fadeIn 0.5s;}
+        .meta-tags{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.3rem;}
+        .meta-tag{background:rgba(99,102,241,0.15);color:var(--indigo);padding:0.2rem 0.5rem;border-radius:4px;font-size:0.6rem;font-weight:500;}
+
+        /* Tone selector */
+        .tone-selector{display:flex;gap:0.3rem;margin-bottom:0.5rem;}
+        .tone-chip{padding:0.35rem 0.7rem;border-radius:20px;font-size:0.65rem;font-weight:500;background:var(--bg);border:1px solid var(--ring);cursor:pointer;transition:all 0.2s;color:var(--t2);}
+        .tone-chip:hover,.tone-chip.active{border-color:var(--teal);color:var(--teal);background:rgba(20,184,166,0.08);}
+
+        /* Safety moderation */
+        .mod-panel{background:var(--raised);border-radius:10px;padding:1rem;}
+        .mod-row{display:flex;align-items:center;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+        .mod-row:last-child{border:none;}
+        .mod-name{font-size:0.68rem;color:var(--t2);}
+        .mod-status{font-size:0.58rem;font-weight:600;padding:0.18rem 0.45rem;border-radius:4px;font-family:'Source Code Pro',monospace;}
+        .mod-status.pass{background:rgba(132,204,22,0.12);color:var(--lime);}
+        .mod-status.warn{background:rgba(245,158,11,0.12);color:var(--amber);}
+
+        /* Sidebar metrics */
+        .side-metrics{display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;}
+        .sm{background:var(--raised);border-radius:8px;padding:0.6rem;text-align:center;}
+        .sm-val{font-size:1.3rem;font-weight:700;font-family:'Source Code Pro',monospace;color:var(--teal);}
+        .sm-label{font-size:0.48rem;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-top:0.15rem;}
+
+        /* Subtitle preview */
+        .sub-preview{background:var(--raised);border-radius:10px;padding:1rem;}
+        .sub-lang{display:flex;gap:0.3rem;margin-bottom:0.5rem;flex-wrap:wrap;}
+        .sub-flag{padding:0.25rem 0.5rem;border-radius:4px;font-size:0.6rem;background:var(--bg);border:1px solid var(--ring);cursor:pointer;transition:all 0.2s;}
+        .sub-flag.active{border-color:var(--indigo);background:rgba(99,102,241,0.12);color:var(--indigo);}
+        .sub-text{font-size:0.72rem;color:var(--t2);line-height:1.6;background:var(--bg);border-radius:6px;padding:0.6rem;font-style:italic;}
+
+        .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--raised);border:1px solid var(--ring);border-radius:12px;padding:0.7rem 1rem;display:flex;align-items:center;gap:0.5rem;box-shadow:0 10px 40px rgba(0,0,0,0.5);transform:translateY(100px);opacity:0;transition:all 0.35s;z-index:1001;}
+        .toast.show{transform:translateY(0);opacity:1;}
+        ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--ring);border-radius:3px;}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <div class="logo-mark">📑</div>
+                <div><div class="logo-title">VideoChapter-Intelligence</div><div class="logo-sub">Dailymotion Studio AI</div></div>
+            </div>
+            <div class="badges">
+                <span class="badge live">● Processing</span>
+                <span class="badge">Auto-Chaptering</span>
+                <span class="badge">50+ Languages</span>
+                <span class="badge">Content Moderation</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="hero">
+            <h1>📑 AI Video Content Structuring</h1>
+            <p>Auto-chapter, generate metadata, translate subtitles, and moderate — all from a single transcript</p>
+        </div>
+
+        <div class="ctrls">
+            <button class="ctrl-btn" id="runBtn" onclick="runPipeline()">✨ Generate Chapters</button>
+            <button class="ctrl-btn" onclick="generateMeta()">📝 Generate Metadata</button>
+            <button class="ctrl-btn" onclick="runModeration()">🛡️ Run Moderation</button>
+            <button class="ctrl-btn" onclick="resetAll()">🔄 Reset</button>
+        </div>
+
+        <div class="workspace">
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+                <div class="card">
+                    <div class="card-h"><h3>📄 Video Transcript</h3><span style="font-size:0.6rem;color:var(--t3);font-family:'Source Code Pro';">12:34 duration • EN</span></div>
+                    <div class="card-b">
+                        <div class="transcript-area" id="transcript">
+                            <span class="ts">00:00</span>Welcome to our deep dive into sustainable fashion. Today we're exploring how the industry is transforming.<br><br>
+                            <span class="ts">01:15</span>Let's start with the raw materials. Organic cotton now accounts for 2% of global production, but it's growing fast.<br><br>
+                            <span class="ts">02:45</span>The dyeing process is where most water pollution occurs. New enzyme-based dyes are reducing water usage by 80%.<br><br>
+                            <span class="ts">04:20</span>Supply chain transparency is the next frontier. Blockchain tracking allows consumers to verify every step.<br><br>
+                            <span class="ts">06:00</span>Fast fashion brands are responding. Several major retailers have launched take-back programs and repair services.<br><br>
+                            <span class="ts">07:45</span>Consumer behavior is shifting dramatically. Gen Z shoppers are 3x more likely to buy secondhand than new.<br><br>
+                            <span class="ts">09:30</span>The circular economy model is gaining traction. Clothing rental services grew 150% last year alone.<br><br>
+                            <span class="ts">10:50</span>Looking ahead, AI is helping designers create zero-waste patterns, reducing fabric waste by up to 15%.<br><br>
+                            <span class="ts">12:00</span>In conclusion, sustainable fashion isn't just a trend — it's an economic and environmental imperative.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-h"><h3>📊 Chapter Timeline</h3></div>
+                    <div class="card-b">
+                        <div class="timeline-visual">
+                            <div class="timeline-bar" id="timelineBar">
+                                <div style="flex:1;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--t3);">Run analysis to generate timeline</div>
+                            </div>
+                            <div class="tl-labels"><span class="tl-label">0:00</span><span class="tl-label">6:17</span><span class="tl-label">12:34</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-h"><h3>📋 Generated Chapters</h3><span style="font-size:0.6rem;color:var(--t3);" id="chCount">0 chapters</span></div>
+                    <div class="card-b">
+                        <div class="chapters" id="chaptersContainer">
+                            <div style="color:var(--t3);font-size:0.8rem;text-align:center;padding:1.5rem;">Click "Generate Chapters" to analyze transcript</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-h"><h3>📝 Generated Metadata</h3></div>
+                    <div class="card-b">
+                        <div class="tone-selector">
+                            <div class="tone-chip active" onclick="setTone(this,'catchy')">🔥 Catchy</div>
+                            <div class="tone-chip" onclick="setTone(this,'friendly')">😊 Friendly</div>
+                            <div class="tone-chip" onclick="setTone(this,'professional')">💼 Professional</div>
+                        </div>
+                        <div class="meta-section" id="metaSection">
+                            <div class="meta-row"><div class="meta-label">Title</div><div class="meta-val" id="metaTitle">—</div></div>
+                            <div class="meta-row"><div class="meta-label">Description</div><div class="meta-val" id="metaDesc">—</div></div>
+                            <div class="meta-row"><div class="meta-label">Hashtags</div><div class="meta-tags" id="metaTags"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+                <div class="card">
+                    <div class="card-h"><h3>📊 Analysis Metrics</h3></div>
+                    <div class="card-b">
+                        <div class="side-metrics">
+                            <div class="sm"><div class="sm-val" id="mChapters">—</div><div class="sm-label">Chapters</div></div>
+                            <div class="sm"><div class="sm-val" id="mWords">—</div><div class="sm-label">Words</div></div>
+                            <div class="sm"><div class="sm-val" id="mTopics">—</div><div class="sm-label">Topics</div></div>
+                            <div class="sm"><div class="sm-val" id="mLang">—</div><div class="sm-label">Languages</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-h"><h3>🌐 AI Subtitles</h3></div>
+                    <div class="card-b">
+                        <div class="sub-preview">
+                            <div class="sub-lang">
+                                <div class="sub-flag active" onclick="setLang(this,'en')">🇬🇧 EN</div>
+                                <div class="sub-flag" onclick="setLang(this,'fr')">🇫🇷 FR</div>
+                                <div class="sub-flag" onclick="setLang(this,'es')">🇪🇸 ES</div>
+                                <div class="sub-flag" onclick="setLang(this,'de')">🇩🇪 DE</div>
+                                <div class="sub-flag" onclick="setLang(this,'ja')">🇯🇵 JA</div>
+                            </div>
+                            <div class="sub-text" id="subText">Welcome to our deep dive into sustainable fashion. Today we're exploring how the industry is transforming.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-h"><h3>🛡️ Content Moderation</h3></div>
+                    <div class="card-b">
+                        <div class="mod-panel" id="modPanel">
+                            <div class="mod-row"><span class="mod-name">Hate Speech</span><span class="mod-status" id="mod0">—</span></div>
+                            <div class="mod-row"><span class="mod-name">Misinformation</span><span class="mod-status" id="mod1">—</span></div>
+                            <div class="mod-row"><span class="mod-name">Violence/Graphic</span><span class="mod-status" id="mod2">—</span></div>
+                            <div class="mod-row"><span class="mod-name">Adult Content</span><span class="mod-status" id="mod3">—</span></div>
+                            <div class="mod-row"><span class="mod-name">Copyright Risk</span><span class="mod-status" id="mod4">—</span></div>
+                            <div class="mod-row"><span class="mod-name">Sponsor Disclosure</span><span class="mod-status" id="mod5">—</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-h"><h3>🎯 SEO Score</h3></div>
+                    <div class="card-b">
+                        <div style="display:flex;flex-direction:column;align-items:center;padding:0.5rem;">
+                            <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(var(--teal) 0deg,var(--teal) var(--seo-angle,0deg),var(--raised) var(--seo-angle,0deg));display:flex;align-items:center;justify-content:center;" id="seoRing">
+                                <div style="width:76px;height:76px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;">
+                                    <span style="font-size:1.4rem;font-weight:700;font-family:'Source Code Pro',monospace;color:var(--teal);" id="seoVal">—</span>
+                                </div>
+                            </div>
+                            <div style="font-size:0.5rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:0.5rem;">SEO Optimization</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast" id="toast"><span id="toastIcon">✅</span><div><div style="font-size:0.8rem;font-weight:600;" id="toastT"></div><div style="font-size:0.6rem;color:var(--t3);" id="toastM"></div></div></div>
+
+    <script>
+        const chaptersData = [
+            {time:'0:00', title:'Introduction', desc:'Overview of sustainable fashion landscape', color:'#14b8a6', pct:10},
+            {time:'1:15', title:'Raw Materials Revolution', desc:'Organic cotton and alternative fibers', color:'#6366f1', pct:12},
+            {time:'2:45', title:'Clean Dyeing Technology', desc:'Enzyme-based dyes reducing water usage 80%', color:'#d946ef', pct:13},
+            {time:'4:20', title:'Supply Chain Transparency', desc:'Blockchain tracking and verification', color:'#f59e0b', pct:13},
+            {time:'6:00', title:'Fast Fashion Response', desc:'Take-back programs and repair services', color:'#ef4444', pct:14},
+            {time:'7:45', title:'Consumer Behavior Shift', desc:'Gen Z and secondhand shopping trends', color:'#84cc16', pct:14},
+            {time:'9:30', title:'Circular Economy', desc:'Clothing rental services growth', color:'#0ea5e9', pct:11},
+            {time:'10:50', title:'AI in Design', desc:'Zero-waste patterns and fabric optimization', color:'#ec4899', pct:8},
+            {time:'12:00', title:'Conclusion', desc:'The imperative for sustainable fashion', color:'#8b5cf6', pct:5},
+        ];
+
+        const translations = {
+            en: "Welcome to our deep dive into sustainable fashion. Today we're exploring how the industry is transforming.",
+            fr: "Bienvenue dans notre plongée au cœur de la mode durable. Aujourd'hui, nous explorons comment l'industrie se transforme.",
+            es: "Bienvenidos a nuestra inmersión en la moda sostenible. Hoy exploramos cómo se está transformando la industria.",
+            de: "Willkommen zu unserem Einblick in nachhaltige Mode. Heute untersuchen wir, wie sich die Branche wandelt.",
+            ja: "サステナブルファッションの深掘りへようこそ。今日は業界がどのように変革しているかを探ります。"
+        };
+
+        const metaByTone = {
+            catchy: {title:"🔥 Fashion's Dirty Secret Is Getting a Glow-Up", desc:"From toxic dyes to blockchain supply chains — the billion-dollar industry is being rebuilt from scratch. Here's what you need to know."},
+            friendly: {title:"How Sustainable Fashion Is Changing the World (And Your Closet!)", desc:"We break down the coolest innovations making fashion greener — from enzyme dyes to AI-designed zero-waste patterns. You'll love what's coming!"},
+            professional: {title:"Sustainable Fashion Industry Analysis: Technology, Trends & Economic Impact", desc:"A comprehensive examination of transformative technologies in the fashion supply chain, from material innovation to circular economy models."}
+        };
+
+        let currentTone = 'catchy';
+
+        function runPipeline() {
+            document.getElementById('runBtn').classList.add('active');
+            showToast('✨','Analyzing','Parsing transcript and detecting topic boundaries...');
+
+            const container = document.getElementById('chaptersContainer');
+            container.innerHTML = '';
+
+            let i = 0;
+            const int = setInterval(()=>{
+                if(i >= chaptersData.length) {
+                    clearInterval(int);
+                    renderTimeline();
+                    document.getElementById('mChapters').textContent = chaptersData.length;
+                    document.getElementById('mWords').textContent = '1,847';
+                    document.getElementById('mTopics').textContent = '9';
+                    document.getElementById('chCount').textContent = chaptersData.length + ' chapters';
+                    showToast('✅','Done',chaptersData.length + ' chapters generated from transcript');
+                    return;
+                }
+                const ch = chaptersData[i];
+                const div = document.createElement('div');
+                div.className = 'chapter';
+                div.innerHTML = `<div class="ch-time">${ch.time}</div><div class="ch-info"><div class="ch-title">${ch.title}</div><div class="ch-desc">${ch.desc}</div></div><div class="ch-badge auto">AI</div>`;
+                container.appendChild(div);
+                i++;
+            }, 250);
+        }
+
+        function renderTimeline() {
+            const bar = document.getElementById('timelineBar');
+            bar.innerHTML = chaptersData.map(ch =>
+                `<div class="tl-seg" style="flex:${ch.pct};background:${ch.color};" title="${ch.title}">${ch.pct>8?ch.title.split(' ')[0]:''}</div>`
+            ).join('');
+        }
+
+        function generateMeta() {
+            const m = metaByTone[currentTone];
+            const title = document.getElementById('metaTitle');
+            const desc = document.getElementById('metaDesc');
+            title.textContent = m.title; title.className = 'meta-val generated';
+            desc.textContent = m.desc; desc.className = 'meta-val generated';
+            
+            const tags = document.getElementById('metaTags');
+            const hashtags = ['#SustainableFashion','#CircularEconomy','#EcoFriendly','#FashionTech','#ZeroWaste','#GenZ','#SlowFashion'];
+            tags.innerHTML = hashtags.map(h=>`<div class="meta-tag">${h}</div>`).join('');
+
+            animateSEO(87);
+            document.getElementById('mLang').textContent = '5';
+            showToast('📝','Metadata Generated','Title, description and hashtags created ('+currentTone+' tone)');
+        }
+
+        function setTone(el, tone) {
+            document.querySelectorAll('.tone-chip').forEach(c=>c.classList.remove('active'));
+            el.classList.add('active');
+            currentTone = tone;
+            generateMeta();
+        }
+
+        function setLang(el, lang) {
+            document.querySelectorAll('.sub-flag').forEach(f=>f.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('subText').textContent = translations[lang];
+        }
+
+        function runModeration() {
+            const statuses = ['pass','pass','pass','pass','pass','warn'];
+            const labels = ['CLEAR','CLEAR','CLEAR','CLEAR','CLEAR','FLAG'];
+            for(let i=0;i<6;i++){
+                setTimeout(()=>{
+                    const el = document.getElementById('mod'+i);
+                    el.className = 'mod-status '+statuses[i];
+                    el.textContent = labels[i];
+                },i*200);
+            }
+            showToast('🛡️','Moderation Complete','5 checks passed, 1 advisory flag');
+        }
+
+        function animateSEO(target) {
+            let v=0;
+            const int=setInterval(()=>{
+                v+=2;if(v>target)v=target;
+                document.getElementById('seoRing').style.setProperty('--seo-angle',(v/100*360)+'deg');
+                document.getElementById('seoVal').textContent=v;
+                if(v>=target)clearInterval(int);
+            },20);
+        }
+
+        function resetAll() {
+            document.getElementById('chaptersContainer').innerHTML='<div style="color:var(--t3);font-size:0.8rem;text-align:center;padding:1.5rem;">Click "Generate Chapters" to analyze transcript</div>';
+            document.getElementById('timelineBar').innerHTML='<div style="flex:1;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--t3);">Run analysis to generate timeline</div>';
+            document.getElementById('chCount').textContent='0 chapters';
+            ['mChapters','mWords','mTopics','mLang'].forEach(id=>document.getElementById(id).textContent='—');
+            document.getElementById('metaTitle').textContent='—';document.getElementById('metaTitle').className='meta-val';
+            document.getElementById('metaDesc').textContent='—';document.getElementById('metaDesc').className='meta-val';
+            document.getElementById('metaTags').innerHTML='';
+            for(let i=0;i<6;i++){document.getElementById('mod'+i).className='mod-status';document.getElementById('mod'+i).textContent='—';}
+            document.getElementById('seoRing').style.setProperty('--seo-angle','0deg');
+            document.getElementById('seoVal').textContent='—';
+            document.getElementById('runBtn').classList.remove('active');
+            showToast('🔄','Reset','All data cleared');
+        }
+
+        function showToast(icon,t,m){
+            document.getElementById('toastIcon').textContent=icon;
+            document.getElementById('toastT').textContent=t;
+            document.getElementById('toastM').textContent=m;
+            const el=document.getElementById('toast');el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);
+        }
+    </script>
+</body>
+</html>
